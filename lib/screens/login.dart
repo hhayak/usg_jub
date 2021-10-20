@@ -8,16 +8,26 @@ import 'package:usg_jub/services/auth_service.dart';
 class LoginPage extends StatelessWidget {
   final RoundedLoadingButtonController _btnController =
       RoundedLoadingButtonController();
-  final FormControl<String> emailControl =
-      FormControl<String>(validators: [Validators.required, Validators.email]);
+  final FormControl<String> usernameControl =
+      FormControl<String>(validators: [Validators.required]);
+  static const String emailDomain = '@jacobs-university.de';
 
   LoginPage({Key? key}) : super(key: key);
 
   Future<void> handleLogin() async {
-    if (emailControl.valid) {
-      Get.find<AuthService>().sendEmailLogin(emailControl.value!);
-      _btnController.softSuccess();
-    } else {
+    try {
+      if (usernameControl.valid) {
+        var email = usernameControl.value! + emailDomain;
+        print(email);
+        Get.find<AuthService>().sendEmailLogin(email);
+        _btnController.softSuccess();
+        Get.snackbar('Link sent!',
+            'To sign in, please click the link we have sent to your email.',
+            duration: const Duration(seconds: 10));
+      } else {
+        throw Exception('Email not valid');
+      }
+    } catch (e) {
       _btnController.softError();
     }
   }
@@ -27,21 +37,26 @@ class LoginPage extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: SizedBox(
-          width: 500,
+          width: 300,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
+              Image.asset('assets/usg_logo.png', width: 200, height: 200,),
+              const SizedBox(height: 20),
               ReactiveTextField<String>(
-                formControl: emailControl,
-                decoration: const InputDecoration(label: Text('Email')),
+                formControl: usernameControl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(
+                    label: Text('Email'), suffixText: emailDomain),
                 validationMessages: (control) => {
                   ValidationMessage.required: 'Email is required.',
-                  ValidationMessage.email:
-                      'Email must be a valid Jacobs University email.',
                 },
               ),
+              const SizedBox(height: 5),
               RoundedLoadingButton(
+                color: Colors.blueGrey,
+                width: 150,
                 controller: _btnController,
                 onPressed: handleLogin,
                 child: const Text('Login'),

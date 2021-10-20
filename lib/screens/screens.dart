@@ -5,7 +5,7 @@ import 'package:usg_jub/screens/login.dart';
 import 'package:usg_jub/screens/verify_login.dart';
 
 class Screens {
-  static const String home = '/home';
+  static const String home = '/';
   static const String login = '/login';
   static const String verifylogin = '/verifylogin';
 
@@ -14,6 +14,7 @@ class Screens {
       name: '/',
       page: () => const HomePage(),
       middlewares: [AuthMiddleware()],
+      binding: BindingsBuilder.put(() => HomeController()),
     ),
     GetPage(
       name: login,
@@ -22,11 +23,6 @@ class Screens {
     GetPage(
       name: verifylogin,
       page: () => const VerifyLoginPage(),
-    ),
-    GetPage(
-      name: home,
-      page: () => const HomePage(),
-      middlewares: [AuthMiddleware()],
     ),
   ];
 }

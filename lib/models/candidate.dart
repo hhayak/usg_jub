@@ -7,8 +7,9 @@ class Candidate {
   final String id;
   final String name;
   final String description;
+  final String? pictureUrl;
 
-  Candidate(this.id, this.name, this.description);
+  Candidate(this.id, this.name, this.description, [this.pictureUrl]);
 
   factory Candidate.fromJson(Map<String, dynamic> json) =>
       _$CandidateFromJson(json);

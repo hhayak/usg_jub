@@ -1,15 +1,18 @@
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:usg_jub/models/candidate.dart';
 import 'package:usg_jub/models/election.dart';
 
 class VoteService {
   static const String collectionPath = 'elections';
   final FirebaseFirestore firestore;
+  final FirebaseStorage storage;
   late final CollectionReference<Election> collection;
   late final CollectionReference locks;
 
-  VoteService(this.firestore, [bool useEmulator = false]) {
+  VoteService(this.firestore, this.storage, [bool useEmulator = false]) {
     if (useEmulator) {
       try {
         firestore.useFirestoreEmulator('localhost', 8080);
@@ -63,6 +66,13 @@ class VoteService {
         [candidate.toJson()],
       ),
     });
+  }
+
+  Future<String> uploadPicture(
+      Uint8List bytes, String pictureName, String electionId) async {
+    var ref = storage.ref('public/elections/$electionId/$pictureName');
+    var task = await ref.putData(bytes);
+    return (await task.ref.getDownloadURL());
   }
 
   Future<List<Election>> getElections() async {

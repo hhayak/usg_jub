@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:usg_jub/models/candidate.dart';
@@ -7,10 +8,24 @@ import 'package:usg_jub/models/election.dart';
 import 'package:usg_jub/screens/home.dart';
 import 'package:usg_jub/services/auth_service.dart';
 import 'package:usg_jub/services/vote_service.dart';
+import 'package:uuid/uuid.dart';
 
 class ElectionPage extends StatelessWidget {
   final Election election;
   const ElectionPage({Key? key, required this.election}) : super(key: key);
+
+  List<Widget> _buildCards(List<Candidate> candidates) {
+    var cards = candidates
+        .map((e) => CandidateCard(
+              candidate: e,
+              electionId: election.id,
+            ))
+        .toList();
+    if (Get.find<AuthService>().isAdmin ?? false) {
+      cards.add(AddCandidateCard());
+    }
+    return cards;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,17 +33,14 @@ class ElectionPage extends StatelessWidget {
       appBar: AppBar(
         centerTitle: true,
         title: Text(election.title),
+        leading: BackButton(
+          onPressed: Get.back,
+        ),
       ),
       body: GetBuilder<ElectionController>(
         init: ElectionController(election),
         builder: (controller) => Wrap(
-          children: controller.election.candidates
-              .map((e) => CandidateCard(
-                    candidate: e,
-                    electionId: election.id,
-                  ))
-              .toList()
-            ..add(AddCandidateCard()),
+          children: _buildCards(controller.election.candidates),
         ),
       ),
     );
@@ -69,31 +81,47 @@ class CandidateCard extends StatelessWidget {
     Get.defaultDialog(
         title: 'Confirm your vote?',
         middleText: 'You are voting for: ${candidate.name}',
-        textCancel: 'No',
-        textConfirm: 'Yes',
+        cancel: TextButton(
+          onPressed: Get.back,
+          child: const Text('Cancel'),
+        ),
+        confirm: ElevatedButton(
+          onPressed: handleConfirmVote,
+          child: const Text('Confirm'),
+        ),
         onConfirm: handleConfirmVote);
   }
 
   void showDescription() {
     Get.defaultDialog(
-        title: candidate.name,
-        content: Column(
-          children: [
-            const CircleAvatar(
-              child: FlutterLogo(),
+      title: candidate.name,
+      content: Column(
+        children: [
+          CircleAvatar(
+            radius: 50,
+            backgroundImage: NetworkImage(
+              candidate.pictureUrl ?? '',
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            SizedBox(
-              width: Get.width / 2,
-              child: Text(candidate.description),
-            ),
-          ],
-        ),
-        textCancel: 'Cancel',
-        textConfirm: 'Vote',
-        onConfirm: handleVote);
+            onBackgroundImageError: (error, trace) => const FlutterLogo(),
+          ),
+          const SizedBox(
+            height: 20,
+          ),
+          SizedBox(
+            width: Get.width / 2,
+            child: Text(candidate.description),
+          ),
+        ],
+      ),
+      cancel: TextButton(
+        onPressed: Get.back,
+        child: const Text('Back'),
+      ),
+      confirm: ElevatedButton(
+        onPressed: handleVote,
+        child: const Text('Vote'),
+      ),
+    );
   }
 
   @override
@@ -105,8 +133,12 @@ class CandidateCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const CircleAvatar(
-                child: FlutterLogo(),
+              leading: CircleAvatar(
+                radius: 30,
+                backgroundImage: NetworkImage(
+                  candidate.pictureUrl ?? '',
+                ),
+                onBackgroundImageError: (error, trace) => const FlutterLogo(),
               ),
               title: Text(candidate.name),
             ),
@@ -122,7 +154,7 @@ class CandidateCard extends StatelessWidget {
 
 class AddCandidateCard extends CandidateCard {
   AddCandidateCard({Key? key})
-      : super(key: key, candidate: Candidate('', '', ''), electionId: '');
+      : super(key: key, candidate: Candidate('', '', '', ''), electionId: '');
 
   void handleAdd() {
     Get.defaultDialog(
@@ -159,15 +191,28 @@ class CreateCandidateDialogue extends StatelessWidget {
   final form = FormGroup({
     'name': FormControl<String>(validators: [Validators.required]),
     'description': FormControl<String>(validators: [Validators.required]),
+    'picture': FormControl<XFile>(validators: [Validators.required]),
   });
   CreateCandidateDialogue({Key? key}) : super(key: key);
 
+  Future<void> pickImage() async {
+    var picker = ImagePicker();
+    var image = await picker.pickImage(source: ImageSource.gallery);
+    form.control('picture').updateValue(image);
+  }
+
   Future<void> handleCreate() async {
     if (form.valid) {
-      var candidate = Candidate(form.control('name').value,
-          form.control('name').value, form.control('description').value);
+      XFile picture = form.control('picture').value;
+      var pictureBytes = await picture.readAsBytes();
+      var id = const Uuid().v1();
+      var pictureName = '$id.${picture.name.split('.').last}';
+      var electionId = Get.find<ElectionController>().election.id;
       try {
-        var electionId = Get.find<ElectionController>().election.id;
+        var pictureUrl = await Get.find<VoteService>()
+            .uploadPicture(pictureBytes, pictureName, electionId);
+        var candidate = Candidate(id, form.control('name').value,
+            form.control('description').value, pictureUrl);
         await Get.find<VoteService>().addCandidate(electionId, candidate);
         Get.find<ElectionController>().election.candidates.add(candidate);
         Get.find<ElectionController>().update();
@@ -186,11 +231,33 @@ class CreateCandidateDialogue extends StatelessWidget {
     return ReactiveForm(
       formGroup: form,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          ReactiveValueListenableBuilder<XFile>(
+            formControlName: 'picture',
+            builder: (context, control, child) => CircleAvatar(
+              radius: 50,
+              backgroundImage: NetworkImage(
+                control.value?.path ?? '',
+              ),
+              onBackgroundImageError: (error, trace) => const FlutterLogo(),
+              child: control.value == null
+                  ? IconButton(
+                      icon: const Icon(Icons.add),
+                      onPressed: pickImage,
+                    )
+                  : null,
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
           ReactiveTextField<String>(
             formControlName: 'name',
             decoration: const InputDecoration(label: Text('Name')),
             keyboardType: TextInputType.name,
+            textInputAction: TextInputAction.next,
+            onSubmitted: () => form.focus('description'),
           ),
           const SizedBox(
             height: 10,
@@ -201,6 +268,7 @@ class CreateCandidateDialogue extends StatelessWidget {
               formControlName: 'description',
               decoration: const InputDecoration(hintText: 'Description'),
               keyboardType: TextInputType.multiline,
+              textInputAction: TextInputAction.newline,
               maxLines: 10,
             ),
           ),

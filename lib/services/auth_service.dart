@@ -6,14 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 class AuthService {
   final FirebaseAuth auth;
   final FirebaseFirestore firestore;
-  bool? isLoggedIn;
   bool? isAdmin;
   Completer firstCheck = Completer();
 
   AuthService(this.auth, this.firestore,
       [bool useEmulator = false, bool skipAuth = false]) {
     if (skipAuth) {
-      isLoggedIn = true;
       firstCheck.complete();
     } else {
       if (useEmulator) {
@@ -28,7 +26,6 @@ class AuthService {
   Future<void> listentoAuth() async {
     await auth.setPersistence(Persistence.LOCAL);
     auth.authStateChanges().listen((user) {
-      isLoggedIn = !(user == null);
       if (!firstCheck.isCompleted) {
         firstCheck.complete();
       }
@@ -37,6 +34,20 @@ class AuthService {
 
   Future<void> logout() async {
     auth.signOut();
+  }
+
+  Future<UserCredential> register(String email, String password) async {
+    try {
+      var credential = await auth.createUserWithEmailAndPassword(
+          email: email, password: password);
+      if (credential.user != null) {
+        //credential.user!.sendEmailVerification();
+        initLock(credential.user!.uid);
+      }
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message);
+    }
   }
 
   Future<void> sendEmailLogin(String email) async {
@@ -48,12 +59,22 @@ class AuthService {
         email: email, actionCodeSettings: actionCodeSettings);
   }
 
+  Future<UserCredential> login(String email, String password) async {
+    try {
+      var credential = await auth.signInWithEmailAndPassword(
+          email: email, password: password);
+      await checkIsAdmin();
+      return credential;
+    } on FirebaseAuthException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
   Future<UserCredential> emailLogin(String email, String link) async {
     if (auth.isSignInWithEmailLink(link)) {
       try {
         var credential =
             await auth.signInWithEmailLink(email: email, emailLink: link);
-        isLoggedIn = true;
         await checkIsAdmin();
         return credential;
       } on FirebaseAuthException catch (e) {

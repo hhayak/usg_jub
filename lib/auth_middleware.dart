@@ -7,6 +7,6 @@ class AuthMiddleware extends GetMiddleware {
   @override
   RouteSettings? redirect(String? route) {
     var auth = Get.find<AuthService>();
-    return auth.isLoggedIn! ? null : const RouteSettings(name: Screens.login);
+    return auth.user != null ? null : const RouteSettings(name: Screens.login);
   }
 }

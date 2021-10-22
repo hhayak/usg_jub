@@ -31,13 +31,19 @@ class HomePage extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
+                Image.asset(
+                  'assets/usg_logo.png',
+                  height: 200,
+                ),
                 ListView.builder(
+                  physics: const NeverScrollableScrollPhysics(),
                   itemBuilder: (context, index) =>
                       ElectionCard(election: elections![index]),
                   itemCount: elections!.length,
                   shrinkWrap: true,
                 ),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (Get.find<AuthService>().isAdmin!) ...{
                       Padding(
@@ -70,11 +76,19 @@ class HomePage extends StatelessWidget {
         ),
         onEmpty: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('No Elections found.'),
+              Image.asset(
+                'assets/usg_logo.png',
+                height: 200,
+              ),
+              const SizedBox(
+                height: 50,
+              ),
+              const Text('No elections found.'),
               ElevatedButton(
                   onPressed: openElectionCreation,
-                  child: const Text('Add election test')),
+                  child: const Text('Create new election')),
             ],
           ),
         ),
@@ -88,6 +102,8 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+enum ManageOptions { open, close, delete, candidates }
 
 class ElectionCard extends StatelessWidget {
   final Election election;
@@ -136,29 +152,50 @@ class ElectionCard extends StatelessWidget {
               ),
               if (Get.find<AuthService>().isAdmin ?? false) ...{
                 TextButton(
-                  onPressed: () async {
-                    await Get.find<VoteService>().openElection(election.id);
-                    Get.find<HomeController>().getElections();
-                  },
-                  child: const Text('Open'),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await Get.find<VoteService>().closeElection(election.id);
-                    Get.find<HomeController>().getElections();
-                  },
-                  child: const Text('Close'),
-                ),
-                TextButton(
                   onPressed: showResults,
                   child: const Text('Show Results'),
                 ),
-                TextButton(
-                  onPressed: () async {
-                    await Get.find<VoteService>().deleteElection(election.id);
-                    Get.find<HomeController>().getElections();
+                PopupMenuButton<ManageOptions>(
+                  itemBuilder: (context) => <PopupMenuEntry<ManageOptions>>[
+                    const PopupMenuItem<ManageOptions>(
+                      value: ManageOptions.open,
+                      child: Text('Open'),
+                    ),
+                    const PopupMenuItem<ManageOptions>(
+                      value: ManageOptions.close,
+                      child: Text('Close'),
+                    ),
+                    const PopupMenuItem<ManageOptions>(
+                      value: ManageOptions.delete,
+                      child: Text('Delete'),
+                    ),
+                    const PopupMenuItem<ManageOptions>(
+                      value: ManageOptions.candidates,
+                      child: Text('Manage Candidates'),
+                    ),
+                  ],
+                  onSelected: (option) async {
+                    switch (option) {
+                      case ManageOptions.open:
+                        await Get.find<VoteService>().openElection(election.id);
+                        Get.find<HomeController>().getElections();
+                        break;
+                      case ManageOptions.close:
+                        await Get.find<VoteService>()
+                            .closeElection(election.id);
+                        Get.find<HomeController>().getElections();
+                        break;
+                      case ManageOptions.delete:
+                        await Get.find<VoteService>()
+                            .deleteElection(election.id);
+                        Get.find<HomeController>().getElections();
+                        break;
+                      case ManageOptions.candidates:
+                        goToElection();
+                        break;
+                      default:
+                    }
                   },
-                  child: const Text('Delete'),
                 ),
               }
             ],
@@ -289,6 +326,8 @@ class CreateElectionDialogue extends StatelessWidget {
           ReactiveTextField<String>(
             formControlName: 'title',
             decoration: const InputDecoration(label: Text('Title')),
+            textInputAction: TextInputAction.done,
+            onSubmitted: form.control('title').unfocus,
           ),
           const SizedBox(height: 5),
           ReactiveDropdownField<String>(

@@ -8,24 +8,23 @@ import 'package:usg_jub/screens/screens.dart';
 import 'package:usg_jub/services/auth_service.dart';
 
 class LoginPage extends StatelessWidget {
-  final RoundedLoadingButtonController _loginBtnController =
-      RoundedLoadingButtonController();
-  final RoundedLoadingButtonController _registerBtnController =
-      RoundedLoadingButtonController();
-  final FormControl<String> usernameControl =
-      FormControl<String>(validators: [Validators.required]);
-  final FormControl<String> passwordControl = FormControl<String>(
-      validators: [Validators.required, Validators.minLength(6)]);
+  final _loginBtnController = RoundedLoadingButtonController();
+  final _registerBtnController = RoundedLoadingButtonController();
+  final FormGroup form = FormGroup({
+    'username': FormControl<String>(validators: [Validators.required]),
+    'password': FormControl<String>(
+        validators: [Validators.required, Validators.minLength(6)]),
+  });
   static const String emailDomain = '@jacobs-university.de';
 
   LoginPage({Key? key}) : super(key: key);
 
   Future<void> handleLogin() async {
     try {
-      if (usernameControl.valid && passwordControl.valid) {
-        var email = usernameControl.value! + emailDomain;
-        var credential =
-            await Get.find<AuthService>().login(email, passwordControl.value!);
+      if (form.valid) {
+        var email = form.control('username').value! + emailDomain;
+        var credential = await Get.find<AuthService>()
+            .login(email, form.control('password').value!);
         if (!credential.user!.emailVerified) {
           var major = await getMajor();
           if (major.isEmpty) {
@@ -41,6 +40,7 @@ class LoginPage extends StatelessWidget {
         throw Exception('Email not valid');
       }
     } catch (e) {
+      Get.find<AuthService>().logout();
       Get.snackbar('Login Failed', e.toString(),
           duration: const Duration(seconds: 10),
           mainButton: e.toString() == 'Exception: Email is not verified.'
@@ -55,10 +55,10 @@ class LoginPage extends StatelessWidget {
 
   Future<void> handleRegister() async {
     try {
-      if (usernameControl.valid && passwordControl.valid) {
-        var email = usernameControl.value! + emailDomain;
+      if (form.valid) {
+        var email = form.control('username').value! + emailDomain;
         var credential = await Get.find<AuthService>()
-            .register(email, passwordControl.value!);
+            .register(email, form.control('password').value!);
         if (credential.user != null &&
             credential.additionalUserInfo!.isNewUser) {
           var major = await getMajor();
@@ -75,6 +75,7 @@ class LoginPage extends StatelessWidget {
       }
     } catch (e) {
       Get.snackbar('Registration Failed.', e.toString());
+      Get.find<AuthService>().logout();
       _registerBtnController.softError();
     }
   }
@@ -112,70 +113,65 @@ class LoginPage extends StatelessWidget {
         child: SizedBox(
           width: 300,
           child: AutofillGroup(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(
-                  'assets/usg_logo.png',
-                  scale: 0.5,
-                ),
-                const SizedBox(height: 20),
-                ReactiveTextField<String>(
-                  formControl: usernameControl,
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                  onSubmitted: passwordControl.focus,
-                  autofillHints: const [AutofillHints.username],
-                  decoration: const InputDecoration(
-                      labelText: 'Email', suffixText: emailDomain),
-                  validationMessages: (control) => {
-                    ValidationMessage.required: 'Email is required.',
-                  },
-                  showErrors: (control) => false,
-                ),
-                const SizedBox(height: 10),
-                ReactiveTextField<String>(
-                  formControl: passwordControl,
-                  keyboardType: TextInputType.visiblePassword,
-                  textInputAction: TextInputAction.done,
-                  onSubmitted: passwordControl.unfocus,
-                  autofillHints: const [AutofillHints.password],
-                  decoration: const InputDecoration(
-                      labelText: 'Password',
-                      hintText: 'Must have at least 6 characters.'),
-                  obscureText: true,
-                  validationMessages: (control) => {
-                    ValidationMessage.required: 'Password is required.',
-                    ValidationMessage.minLength:
-                        'Password must have at least 6 characters.',
-                  },
-                  showErrors: (control) => false,
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    RoundedLoadingButton(
-                      color: Colors.blueGrey,
-                      width: 150,
-                      controller: _loginBtnController,
-                      onPressed: handleLogin,
-                      child: const Text('Login'),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    RoundedLoadingButton(
-                      color: Colors.blueGrey,
-                      width: 150,
-                      controller: _registerBtnController,
-                      onPressed: handleRegister,
-                      child: const Text('Register'),
-                    ),
-                  ],
-                ),
-              ],
+            child: ReactiveForm(
+              formGroup: form,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/usg_logo.png',
+                    scale: 0.5,
+                  ),
+                  const SizedBox(height: 20),
+                  ReactiveTextField<String>(
+                    formControlName: 'username',
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    onSubmitted: form.control('password').focus,
+                    autofillHints: const [AutofillHints.username],
+                    decoration: const InputDecoration(
+                        labelText: 'Email', suffixText: emailDomain),
+                    showErrors: (control) => false,
+                  ),
+                  const SizedBox(height: 10),
+                  ReactiveTextField<String>(
+                    formControlName: 'password',
+                    keyboardType: TextInputType.visiblePassword,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: form.control('password').unfocus,
+                    autofillHints: const [AutofillHints.password],
+                    decoration: const InputDecoration(
+                        labelText: 'Password',
+                        hintText: 'Must have at least 6 characters.'),
+                    obscureText: true,
+                    showErrors: (control) => false,
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      RoundedLoadingButton(
+                        color: Colors.blueGrey,
+                        width: 150,
+                        controller: _loginBtnController,
+                        onPressed: handleLogin,
+                        child: const Text('Login'),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      RoundedLoadingButton(
+                        color: Colors.blueGrey,
+                        width: 150,
+                        controller: _registerBtnController,
+                        onPressed: handleRegister,
+                        child: const Text('Register'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

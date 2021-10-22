@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:usg_jub/constants/majors.dart';
 import 'package:usg_jub/models/election.dart';
 import 'package:usg_jub/screens/election.dart';
 import 'package:usg_jub/screens/screens.dart';
@@ -270,21 +271,6 @@ class CreateElectionDialogue extends StatelessWidget {
         value: DateTime.now(), validators: [Validators.required]),
   });
 
-  static const List<String> majors = [
-    'CHEM',
-    'CS',
-    'EES',
-    'ECE',
-    'GEM',
-    'IEM',
-    'IMS',
-    'IBA',
-    'IRPH',
-    'MATH',
-    'PHY',
-    'PSY',
-    'SMP',
-  ];
   CreateElectionDialogue({Key? key}) : super(key: key);
 
   String formatDate(DateTime date) {

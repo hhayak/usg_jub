@@ -2,10 +2,11 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:get/get.dart';
 import 'package:usg_jub/models/candidate.dart';
 import 'package:usg_jub/models/election.dart';
 
-class VoteService {
+class VoteService extends GetxService {
   static const String collectionPath = 'elections';
   final FirebaseFirestore firestore;
   final FirebaseStorage storage;
@@ -50,12 +51,12 @@ class VoteService {
   }
 
   Future<void> registerVote(
-      String electionId, String candidateId, String voterId) async {
+      String electionId, String candidateName, String voterId) async {
     await collection.doc(electionId).update({
-      'votes.$candidateId': FieldValue.increment(1),
+      'votes.$candidateName': FieldValue.increment(1),
       'totalVotes': FieldValue.increment(1),
     });
-    locks.doc(voterId).set({
+    locks.doc(voterId).update({
       'locks': FieldValue.arrayUnion([electionId])
     });
   }

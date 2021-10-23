@@ -87,9 +87,11 @@ class HomePage extends StatelessWidget {
                 height: 50,
               ),
               const Text('No elections found.'),
-              ElevatedButton(
-                  onPressed: openElectionCreation,
-                  child: const Text('Create new election')),
+              if (Get.find<AuthService>().isAdmin!) ...{
+                ElevatedButton(
+                    onPressed: openElectionCreation,
+                    child: const Text('Create new election')),
+              }
             ],
           ),
         ),
@@ -116,11 +118,12 @@ class ElectionCard extends StatelessWidget {
 
   void showResults() {
     var results = '';
-    election.votes.forEach((key, value) {
-      results = results + '$key: $value\n';
-    });
+    var entries = election.votes.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value));
+    for (var candidate in entries) {
+      results = results + '${candidate.key}: ${candidate.value}\n';
+    }
     Get.defaultDialog(
-        title: 'Vote results of ${election.title}', middleText: results);
+        title: 'Vote results of ${election.title}', middleText: results, textCancel: 'Hide');
   }
 
   String formatDate(DateTime date) {
@@ -144,18 +147,18 @@ class ElectionCard extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: election.isOpen &&
-                        Get.find<AuthService>().user!.displayName ==
+                        Get.find<HomeController>().major ==
                             election.major &&
                         !Get.find<HomeController>().isVoterLocked(election.id)
                     ? goToElection
                     : null,
-                child: const Text('Vote'),
+                child: Text('Vote (${election.isOpen ? 'Open' : 'Closed'})'),
+              ),
+              TextButton(
+                onPressed: election.isOpen ? null : showResults,
+                child: const Text('Show Results'),
               ),
               if (Get.find<AuthService>().isAdmin ?? false) ...{
-                TextButton(
-                  onPressed: showResults,
-                  child: const Text('Show Results'),
-                ),
                 PopupMenuButton<ManageOptions>(
                   itemBuilder: (context) => <PopupMenuEntry<ManageOptions>>[
                     const PopupMenuItem<ManageOptions>(
@@ -212,6 +215,7 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
   late final VoteService vote;
   late List<String> locks;
   late final String voterId;
+  late final String major;
 
   static HomeController get to => Get.find();
 
@@ -221,6 +225,7 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
     vote = Get.find<VoteService>();
     locks = [];
     voterId = Get.find<AuthService>().user!.uid;
+    major = Get.find<AuthService>().user!.displayName ?? '';
     super.onInit();
   }
 
@@ -231,7 +236,7 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
   }
 
   Future<void> init() async {
-    await getLocks();
+    locks = await vote.getLocks(voterId);
     getElections();
   }
 
@@ -248,10 +253,6 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
 
   void softRefresh() {
     change(elections, status: RxStatus.success());
-  }
-
-  Future<void> getLocks() async {
-    locks = await Get.find<VoteService>().getLocks(voterId);
   }
 
   bool isVoterLocked(String electionId) {

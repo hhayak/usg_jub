@@ -19,6 +19,7 @@ class ElectionPage extends StatelessWidget {
         .map((e) => CandidateCard(
               candidate: e,
               electionId: election.id,
+              major:  election.major,
             ))
         .toList();
     if (Get.find<AuthService>().isAdmin ?? false) {
@@ -57,14 +58,15 @@ class ElectionController extends GetxController
 class CandidateCard extends StatelessWidget {
   final Candidate candidate;
   final String electionId;
+  final String major;
   const CandidateCard(
-      {Key? key, required this.candidate, required this.electionId})
+      {Key? key, required this.candidate, required this.electionId, required this.major})
       : super(key: key);
 
   Future<void> handleConfirmVote() async {
     try {
       await Get.find<VoteService>().registerVote(
-          electionId, candidate.id, Get.find<AuthService>().user!.uid);
+          electionId, candidate.name, Get.find<AuthService>().user!.uid);
       Get.find<HomeController>().locks.add(electionId);
       Get.find<HomeController>().softRefresh();
       Get.back(closeOverlays: true);
@@ -118,7 +120,7 @@ class CandidateCard extends StatelessWidget {
         child: const Text('Back'),
       ),
       confirm: ElevatedButton(
-        onPressed: handleVote,
+        onPressed: !Get.find<HomeController>().isVoterLocked(electionId) && Get.find<HomeController>().major == major ? handleVote : null,
         child: const Text('Vote'),
       ),
     );
@@ -154,7 +156,7 @@ class CandidateCard extends StatelessWidget {
 
 class AddCandidateCard extends CandidateCard {
   AddCandidateCard({Key? key})
-      : super(key: key, candidate: Candidate('', '', '', ''), electionId: '');
+      : super(key: key, candidate: Candidate('', '', '', ''), electionId: '', major: '');
 
   void handleAdd() {
     Get.defaultDialog(

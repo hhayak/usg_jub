@@ -131,7 +131,7 @@ class LoginPage extends StatelessWidget {
                     onSubmitted: form.control('password').focus,
                     autofillHints: const [AutofillHints.username],
                     decoration: const InputDecoration(
-                        labelText: 'Email', hintText: 'Username with dot (f.lastname)', suffixText: emailDomain),
+                        labelText: 'Email', hintText: 'f.lastname (with dot)', suffixText: emailDomain),
                     showErrors: (control) => false,
                   ),
                   const SizedBox(height: 10),

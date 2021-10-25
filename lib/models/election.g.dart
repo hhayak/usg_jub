@@ -14,7 +14,7 @@ Election _$ElectionFromJson(Map<String, dynamic> json) => Election(
       json['totalVotes'] as int,
       DateTime.parse(json['startTime'] as String),
       DateTime.parse(json['endTime'] as String),
-      json['major'] as String,
+      (json['major'] as List<dynamic>).map((e) => e as String).toList(),
       json['winner'] == null
           ? null
           : Candidate.fromJson(json['winner'] as Map<String, dynamic>),

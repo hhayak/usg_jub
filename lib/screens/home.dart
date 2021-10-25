@@ -118,12 +118,15 @@ class ElectionCard extends StatelessWidget {
 
   void showResults() {
     var results = '';
-    var entries = election.votes.entries.toList()..sort((e1, e2) => e1.value.compareTo(e2.value));
+    var entries = election.votes.entries.toList()
+      ..sort((e1, e2) => e1.value.compareTo(e2.value));
     for (var candidate in entries) {
       results = results + '${candidate.key}: ${candidate.value}\n';
     }
     Get.defaultDialog(
-        title: 'Vote results of ${election.title}', middleText: results, textCancel: 'Hide');
+        title: 'Vote results of ${election.title}',
+        middleText: results,
+        textCancel: 'Hide');
   }
 
   String formatDate(DateTime date) {
@@ -147,8 +150,8 @@ class ElectionCard extends StatelessWidget {
             children: [
               TextButton(
                 onPressed: election.isOpen &&
-                        Get.find<HomeController>().major ==
-                            election.major &&
+                        election.major
+                            .contains(Get.find<HomeController>().major) &&
                         !Get.find<HomeController>().isVoterLocked(election.id)
                     ? goToElection
                     : null,
@@ -280,6 +283,21 @@ class CreateElectionDialogue extends StatelessWidget {
 
   Future<void> handleCreate() async {
     if (form.valid) {
+      List<String> major;
+      switch (form.control('major').value) {
+        case 'FAD':
+          major = ['GEM', 'IBA', 'SMP', 'IRPH', 'PSY'];
+          break;
+        case 'FAM':
+          major = ['IEM', 'MATH', 'CS', 'ECE', 'IMS'];
+          break;
+        case 'FAH':
+          major = ['BCCB', 'CHEM', 'MCCB', 'EES', 'PHY'];
+          break;
+        default:
+          major = [form.control('major').value];
+          break;
+      }
       var election = Election(
         '',
         form.control('title').value,
@@ -288,7 +306,7 @@ class CreateElectionDialogue extends StatelessWidget {
         0,
         form.control('startTime').value,
         form.control('endTime').value,
-        form.control('major').value,
+        major,
       );
       try {
         await Get.find<VoteService>().createElection(election);

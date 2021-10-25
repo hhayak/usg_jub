@@ -14,4 +14,7 @@ const List<String> majors = [
   'PHY',
   'PSY',
   'SMP',
+  'FAD',
+  'FAM',
+  'FAH',
 ];

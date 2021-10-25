@@ -15,7 +15,7 @@ class Election {
   final DateTime endTime;
   bool isOpen;
   final Candidate? winner;
-  final String major;
+  final List<String> major;
 
   static List<Map<String, dynamic>> listCandidateToJson(List<Candidate> e) =>
       e.map((c) => c.toJson()).toList();

@@ -114,7 +114,10 @@ class CandidateCard extends StatelessWidget {
           ),
           SizedBox(
             width: Get.width / 2,
-            child: Text(candidate.description),
+            height: Get.height / 2,
+            child: SingleChildScrollView(
+              child: Text(candidate.description),
+            ),
           ),
         ],
       ),
@@ -209,7 +212,11 @@ class CreateCandidateDialogue extends StatelessWidget {
 
   Future<void> pickImage() async {
     var picker = ImagePicker();
-    var image = await picker.pickImage(source: ImageSource.gallery);
+    var image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxHeight: 100,
+        maxWidth: 100,
+        imageQuality: 10);
     form.control('picture').updateValue(image);
   }
 

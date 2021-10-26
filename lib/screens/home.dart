@@ -71,6 +71,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
+                Text('Your selected major: ${Get.find<HomeController>().major}'),
               ],
             ),
           ),

@@ -8,7 +8,11 @@
             "name": "main.dart",
             "request": "launch",
             "type": "dart",
-            "program": "lib/main.dart"
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define", "DEBUG=true",
+                "--dart-define", "USE_EMULATOR=true",
+            ],
         },
         {
             "name": "usg_jub (profile mode)",

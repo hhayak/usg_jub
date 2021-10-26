@@ -4,164 +4,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:usg_jub/models/candidate.dart';
-import 'package:usg_jub/models/election.dart';
-import 'package:usg_jub/screens/home.dart';
-import 'package:usg_jub/services/auth_service.dart';
+import 'package:usg_jub/screens/elections/candidate_card.dart';
+import 'package:usg_jub/screens/elections/election.dart';
 import 'package:usg_jub/services/vote_service.dart';
 import 'package:uuid/uuid.dart';
-
-class ElectionPage extends StatelessWidget {
-  final Election election;
-  const ElectionPage({Key? key, required this.election}) : super(key: key);
-
-  List<Widget> _buildCards(List<Candidate> candidates) {
-    var cards = candidates
-        .map((e) => CandidateCard(
-              candidate: e,
-              electionId: election.id,
-              major: election.major,
-            ))
-        .toList();
-    if (Get.find<AuthService>().isAdmin ?? false) {
-      cards.add(AddCandidateCard());
-    }
-    return cards;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        title: Text(election.title),
-        leading: BackButton(
-          onPressed: Get.back,
-        ),
-      ),
-      body: GetBuilder<ElectionController>(
-        init: ElectionController(election),
-        builder: (controller) => Wrap(
-          children: _buildCards(controller.election.candidates),
-        ),
-      ),
-    );
-  }
-}
-
-class ElectionController extends GetxController
-    with StateMixin<List<Candidate>> {
-  final Election election;
-
-  ElectionController(this.election);
-}
-
-class CandidateCard extends StatelessWidget {
-  final Candidate candidate;
-  final String electionId;
-  final List<String> major;
-  const CandidateCard(
-      {Key? key,
-      required this.candidate,
-      required this.electionId,
-      required this.major})
-      : super(key: key);
-
-  Future<void> handleConfirmVote() async {
-    try {
-      await Get.find<VoteService>().registerVote(
-          electionId, candidate.name, Get.find<AuthService>().user!.uid);
-      Get.find<HomeController>().locks.add(electionId);
-      Get.find<HomeController>().softRefresh();
-      Get.back(closeOverlays: true);
-      Get.snackbar(
-          'Vote registered', "Your vote has been submitted successfully!");
-    } catch (e) {
-      Get.back(closeOverlays: true);
-      Get.snackbar('Voting failed',
-          "We could not submit your vote. Please try again later or contact an admin.");
-    }
-  }
-
-  Future<void> handleVote() async {
-    Get.defaultDialog(
-        title: 'Confirm your vote?',
-        middleText: 'You are voting for: ${candidate.name}',
-        cancel: TextButton(
-          onPressed: Get.back,
-          child: const Text('Cancel'),
-        ),
-        confirm: ElevatedButton(
-          onPressed: handleConfirmVote,
-          child: const Text('Confirm'),
-        ),
-        onConfirm: handleConfirmVote);
-  }
-
-  void showDescription() {
-    Get.defaultDialog(
-      title: candidate.name,
-      content: Column(
-        children: [
-          CircleAvatar(
-            radius: 50,
-            backgroundImage: NetworkImage(
-              candidate.pictureUrl ?? '',
-            ),
-            onBackgroundImageError: (error, trace) => const FlutterLogo(),
-          ),
-          const SizedBox(
-            height: 20,
-          ),
-          SizedBox(
-            width: Get.width / 2,
-            height: Get.height / 2,
-            child: SingleChildScrollView(
-              child: Text(candidate.description),
-            ),
-          ),
-        ],
-      ),
-      cancel: TextButton(
-        onPressed: Get.back,
-        child: const Text('Back'),
-      ),
-      confirm: ElevatedButton(
-        onPressed: !Get.find<HomeController>().isVoterLocked(electionId) &&
-                major.contains(Get.find<HomeController>().major)
-            ? handleVote
-            : null,
-        child: const Text('Vote'),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
-      child: Card(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: CircleAvatar(
-                radius: 30,
-                backgroundImage: NetworkImage(
-                  candidate.pictureUrl ?? '',
-                ),
-                onBackgroundImageError: (error, trace) => const FlutterLogo(),
-              ),
-              title: Text(candidate.name),
-            ),
-            TextButton(
-                onPressed: showDescription,
-                child: const Text('Read Description')),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class AddCandidateCard extends CandidateCard {
   AddCandidateCard({Key? key})
@@ -178,14 +24,15 @@ class AddCandidateCard extends CandidateCard {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 200,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 500),
       child: Card(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const ListTile(
               leading: CircleAvatar(
+                radius: 30,
                 child: Icon(Icons.add),
               ),
               title: Text('New Candidate'),

@@ -88,10 +88,9 @@ class VoteService extends GetxService {
     return elections;
   }
 
-  Future<List<String>> getLocks(String voterId) async {
+  Future<Map<String, dynamic>> getLocks(String voterId) async {
     Map<String, dynamic> doc =
         (await locks.doc(voterId).get()).data() as Map<String, dynamic>;
-    List list = doc['locks'];
-    return list.map((e) => e.toString()).toList();
+    return doc;
   }
 }

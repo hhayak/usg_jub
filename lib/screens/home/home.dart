@@ -71,7 +71,8 @@ class HomePage extends StatelessWidget {
                     ),
                   ],
                 ),
-                Text('Your selected major: ${Get.find<HomeController>().major}'),
+                Text(
+                    'Your selected major: ${Get.find<HomeController>().major}'),
               ],
             ),
           ),
@@ -133,8 +134,12 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
   }
 
   Future<void> init() async {
-    locks = await vote.getLocks(voterId);
     getElections();
+    var locksMap = await vote.getLocks(voterId);
+    locks = locksMap['locks'];
+    if (locksMap['major'] != null) {
+      major = locksMap['major'];
+    }
   }
 
   Future<void> getElections() async {

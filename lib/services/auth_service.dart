@@ -85,8 +85,28 @@ class AuthService {
     }
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'auth/invalid-email' || e.code == 'auth/user-not-found') {
+        throw Exception(e.message);
+      } else {
+        throw Exception(
+            'Some error occured while sending a password reset link.');
+      }
+    }
+  }
+
+  Future<void> setMajor(String id, String major) async {
+    firestore.collection('locks').doc(id).update({'major': major});
+  }
+
   Future<void> initLock(String id) async {
-    firestore.collection('locks').doc(id).set({'locks': []});
+    firestore.collection('locks').doc(id).set({
+      'locks': [],
+      'major': null,
+    });
   }
 
   Future<bool> checkIsAdmin() async {

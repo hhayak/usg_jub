@@ -65,6 +65,7 @@ class LoginPage extends StatelessWidget {
           if (major.isEmpty) {
             throw Exception('Major is required.');
           }
+          Get.find<AuthService>().setMajor(credential.user!.uid, major);
           credential.user!.updateDisplayName(major);
           credential.user!.sendEmailVerification();
         }
@@ -77,6 +78,22 @@ class LoginPage extends StatelessWidget {
       Get.snackbar('Registration Failed.', e.toString());
       Get.find<AuthService>().logout();
       _registerBtnController.softError();
+    }
+  }
+
+  Future<void> handleForgotPassword() async {
+    try {
+      if (form.control('username').valid) {
+        await Get.find<AuthService>().sendPasswordResetEmail(
+            form.control('username').value! + emailDomain);
+        Get.snackbar('Password reset link sent!',
+            'Make sure to check your spam/junk folder.',
+            duration: const Duration(seconds: 10));
+      } else {
+        throw Exception('Email is invalid.');
+      }
+    } catch (e) {
+      Get.snackbar('Failed to reset password.', e.toString());
     }
   }
 
@@ -121,7 +138,8 @@ class LoginPage extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/usg_logo.png',
-                    scale: 0.5,
+                    scale: 0.3,
+                    height: Get.width < 600 ? 100 : 300,
                   ),
                   const SizedBox(height: 20),
                   ReactiveTextField<String>(
@@ -131,7 +149,9 @@ class LoginPage extends StatelessWidget {
                     onSubmitted: form.control('password').focus,
                     autofillHints: const [AutofillHints.username],
                     decoration: const InputDecoration(
-                        labelText: 'Email', hintText: 'f.lastname (with dot)', suffixText: emailDomain),
+                        labelText: 'Email',
+                        hintText: 'f.lastname',
+                        suffixText: emailDomain),
                     showErrors: (control) => false,
                   ),
                   const SizedBox(height: 10),
@@ -147,7 +167,16 @@ class LoginPage extends StatelessWidget {
                     obscureText: true,
                     showErrors: (control) => false,
                   ),
-                  const SizedBox(height: 5),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 5),
+                      child: TextButton(
+                        onPressed: handleForgotPassword,
+                        child: const Text('Reset Password'),
+                      ),
+                    ),
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

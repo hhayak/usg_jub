@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:usg_jub/auth_middleware.dart';
 import 'package:usg_jub/screens/home/home.dart';
 import 'package:usg_jub/screens/login.dart';
-import 'package:usg_jub/screens/verify_login.dart';
 
 class Screens {
   static const String home = '/';
@@ -19,10 +18,6 @@ class Screens {
     GetPage(
       name: login,
       page: () => LoginPage(),
-    ),
-    GetPage(
-      name: verifylogin,
-      page: () => const VerifyLoginPage(),
     ),
   ];
 }

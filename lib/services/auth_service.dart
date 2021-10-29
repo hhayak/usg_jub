@@ -50,38 +50,15 @@ class AuthService {
     }
   }
 
-  Future<void> sendEmailLogin(String email) async {
-    var actionCodeSettings = ActionCodeSettings(
-        url: 'https://usg-jacobs-university.web.app/verifylogin?email=$email',
-        dynamicLinkDomain: 'usg-jacobs-university.web.app',
-        handleCodeInApp: true);
-    auth.sendSignInLinkToEmail(
-        email: email, actionCodeSettings: actionCodeSettings);
-  }
-
   Future<UserCredential> login(String email, String password) async {
     try {
       var credential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
       await checkIsAdmin();
+      print(credential.user!.metadata.creationTime);
       return credential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message);
-    }
-  }
-
-  Future<UserCredential> emailLogin(String email, String link) async {
-    if (auth.isSignInWithEmailLink(link)) {
-      try {
-        var credential =
-            await auth.signInWithEmailLink(email: email, emailLink: link);
-        await checkIsAdmin();
-        return credential;
-      } on FirebaseAuthException catch (e) {
-        throw Exception(e.message);
-      }
-    } else {
-      throw Exception('Invalid Link');
     }
   }
 
@@ -104,7 +81,7 @@ class AuthService {
 
   Future<void> initLock(String id) async {
     firestore.collection('locks').doc(id).set({
-      'locks': [],
+      'locks': null,
       'major': null,
     });
   }

@@ -5,13 +5,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "main.dart",
+            "name": "debug-emualtors",
             "request": "launch",
             "type": "dart",
             "program": "lib/main.dart",
             "args": [
-                "--dart-define", "DEBUG=true",
-                "--dart-define", "USE_EMULATOR=true",
+                "--dart-define", "use-emulators=true",
+            ],
+        },
+        {
+            "name": "debug",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "args": [
+                "--dart-define", "use-emulators=false",
             ],
         },
         {

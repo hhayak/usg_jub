@@ -11,7 +11,8 @@ class LoginPage extends StatelessWidget {
   final _loginBtnController = RoundedLoadingButtonController();
   final _registerBtnController = RoundedLoadingButtonController();
   final FormGroup form = FormGroup({
-    'username': FormControl<String>(validators: [Validators.required]),
+    'username': FormControl<String>(
+        validators: [Validators.required, _usernameValidator]),
     'password': FormControl<String>(
         validators: [Validators.required, Validators.minLength(6)]),
   });
@@ -19,7 +20,17 @@ class LoginPage extends StatelessWidget {
 
   LoginPage({Key? key}) : super(key: key);
 
+  static Map<String, dynamic>? _usernameValidator(
+      AbstractControl<dynamic> control) {
+    return control.value != null &&
+            control.value is String &&
+            control.value!.contains('.')
+        ? null
+        : {'usernameValidator': false};
+  }
+
   Future<void> handleLogin() async {
+    Get.focusScope?.unfocus();
     try {
       if (form.valid) {
         var email = form.control('username').value! + emailDomain;
@@ -30,14 +41,22 @@ class LoginPage extends StatelessWidget {
           if (major.isEmpty) {
             throw Exception('Major is required.');
           }
-          credential.user!.updateDisplayName(major);
+          Get.find<AuthService>().setMajor(credential.user!.uid, major);
           throw Exception('Email is not verified.');
         } else {
+          // Users created before 29.10.2021, used display name to set their major.
+          // Bad design. This condition migrates to firestore documents instead.
+          if (credential.user!.metadata.creationTime!
+              .isBefore(DateTime(2021, 10, 30))) {
+            Get.find<AuthService>()
+                .setMajor(credential.user!.uid, credential.user!.displayName!);
+            credential.user!.updateDisplayName(credential.user!.email);
+          }
           _loginBtnController.success();
           Get.offNamed(Screens.home);
         }
       } else {
-        throw Exception('Email not valid');
+        throw Exception('Input is not valid');
       }
     } catch (e) {
       Get.find<AuthService>().logout();
@@ -54,6 +73,7 @@ class LoginPage extends StatelessWidget {
   }
 
   Future<void> handleRegister() async {
+    //Get.focusScope?.unfocus();
     try {
       if (form.valid) {
         var email = form.control('username').value! + emailDomain;
@@ -66,13 +86,14 @@ class LoginPage extends StatelessWidget {
             throw Exception('Major is required.');
           }
           Get.find<AuthService>().setMajor(credential.user!.uid, major);
-          credential.user!.updateDisplayName(major);
           credential.user!.sendEmailVerification();
         }
         _registerBtnController.success();
         Get.snackbar('Registration Succesful!',
             'Please verify your email to be able to login and vote. Make sure to check your junk/spam folder.',
             duration: const Duration(seconds: 10));
+      } else {
+        throw Exception('Input is not valid.');
       }
     } catch (e) {
       Get.snackbar('Registration Failed.', e.toString());
@@ -116,8 +137,11 @@ class LoginPage extends StatelessWidget {
         ),
       ),
       textConfirm: 'Confirm',
-      onConfirm: () => Get.back<String>(
-          result: majorControl.value ?? '', canPop: majorControl.valid),
+      confirm: ElevatedButton(
+        onPressed: () => Get.back<String>(
+            result: majorControl.value ?? '', canPop: majorControl.valid),
+        child: const Text('Confirm'),
+      ),
     );
 
     return selectedMajor!;
@@ -149,7 +173,7 @@ class LoginPage extends StatelessWidget {
                     onSubmitted: form.control('password').focus,
                     autofillHints: const [AutofillHints.username],
                     decoration: const InputDecoration(
-                        labelText: 'Email',
+                        labelText: 'Email (Username with dot ".")',
                         hintText: 'f.lastname',
                         suffixText: emailDomain),
                     showErrors: (control) => false,

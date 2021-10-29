@@ -123,7 +123,6 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
     vote = Get.find<VoteService>();
     locks = [];
     voterId = Get.find<AuthService>().user!.uid;
-    major = Get.find<AuthService>().user!.displayName ?? '';
     super.onInit();
   }
 
@@ -136,7 +135,9 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
   Future<void> init() async {
     getElections();
     var locksMap = await vote.getLocks(voterId);
-    locks = locksMap['locks'];
+    if (locksMap['locks'] != null) {
+      locks = locksMap['locks'];
+    }
     if (locksMap['major'] != null) {
       major = locksMap['major'];
     }

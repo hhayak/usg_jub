@@ -13,7 +13,8 @@ class ElectionCard extends StatelessWidget {
   const ElectionCard({Key? key, required this.election}) : super(key: key);
 
   void goToElection() {
-    Get.to(() => ElectionPage(election: election));
+    Get.to(() => ElectionPage(election: election),
+        routeName: 'election/${election.id}');
   }
 
   void showResults() {
@@ -86,7 +87,8 @@ class ElectionCard extends StatelessWidget {
                     onSelected: (option) async {
                       switch (option) {
                         case ManageOptions.open:
-                          await Get.find<VoteService>().openElection(election.id);
+                          await Get.find<VoteService>()
+                              .openElection(election.id);
                           Get.find<HomeController>().getElections();
                           break;
                         case ManageOptions.close:

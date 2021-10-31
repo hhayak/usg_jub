@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -31,10 +32,11 @@ class LoginPage extends StatelessWidget {
 
   Future<void> handleLogin() async {
     Get.focusScope?.unfocus();
+    late UserCredential credential;
     try {
       if (form.valid) {
         var email = form.control('username').value! + emailDomain;
-        var credential = await Get.find<AuthService>()
+        credential = await Get.find<AuthService>()
             .login(email, form.control('password').value!);
         if (!credential.user!.emailVerified) {
           var major = await getMajor();
@@ -47,7 +49,8 @@ class LoginPage extends StatelessWidget {
           // Users created before 29.10.2021, used display name to set their major.
           // Bad design. This condition migrates to firestore documents instead.
           if (credential.user!.metadata.creationTime!
-              .isBefore(DateTime(2021, 10, 30))) {
+                  .isBefore(DateTime(2021, 10, 31)) &&
+              credential.user!.displayName != null) {
             Get.find<AuthService>()
                 .setMajor(credential.user!.uid, credential.user!.displayName!);
             credential.user!.updateDisplayName(credential.user!.email);
@@ -59,15 +62,23 @@ class LoginPage extends StatelessWidget {
         throw Exception('Input is not valid');
       }
     } catch (e) {
-      Get.find<AuthService>().logout();
-      Get.snackbar('Login Failed', e.toString(),
+      if (e.toString() == 'Exception: Email is not verified.') {
+        Get.snackbar('Login Failed', e.toString(),
+            duration: const Duration(seconds: 10),
+            mainButton: TextButton(
+                onPressed: () async {
+                  await credential.user!.sendEmailVerification();
+                  Get.find<AuthService>().logout();
+                },
+                child: const Text('Send link')));
+      } else {
+        Get.find<AuthService>().logout();
+        Get.snackbar(
+          'Login Failed',
+          e.toString(),
           duration: const Duration(seconds: 10),
-          mainButton: e.toString() == 'Exception: Email is not verified.'
-              ? TextButton(
-                  onPressed: () =>
-                      Get.find<AuthService>().user!.sendEmailVerification(),
-                  child: const Text('Send link'))
-              : null);
+        );
+      }
       _loginBtnController.softError();
     }
   }
@@ -179,17 +190,9 @@ class LoginPage extends StatelessWidget {
                     showErrors: (control) => false,
                   ),
                   const SizedBox(height: 10),
-                  ReactiveTextField<String>(
-                    formControlName: 'password',
-                    keyboardType: TextInputType.visiblePassword,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: form.control('password').unfocus,
-                    autofillHints: const [AutofillHints.password],
-                    decoration: const InputDecoration(
-                        labelText: 'Password',
-                        hintText: 'Must have at least 6 characters.'),
-                    obscureText: true,
-                    showErrors: (control) => false,
+                  PasswordField(
+                    controlName: 'password',
+                    form: form,
                   ),
                   Align(
                     alignment: Alignment.centerRight,
@@ -229,6 +232,52 @@ class LoginPage extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class PasswordField extends StatefulWidget {
+  final String controlName;
+  final FormGroup form;
+  const PasswordField({Key? key, required this.controlName, required this.form})
+      : super(key: key);
+
+  @override
+  _PasswordFieldState createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  late bool _obscureText;
+
+  @override
+  void initState() {
+    _obscureText = true;
+    super.initState();
+  }
+
+  void _toggleObscureText() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ReactiveTextField<String>(
+      formControlName: widget.controlName,
+      keyboardType: TextInputType.visiblePassword,
+      textInputAction: TextInputAction.done,
+      onSubmitted: widget.form.control(widget.controlName).unfocus,
+      autofillHints: const [AutofillHints.password],
+      decoration: InputDecoration(
+        labelText: 'Password',
+        hintText: 'Must have at least 6 characters.',
+        suffixIcon: IconButton(
+            onPressed: _toggleObscureText,
+            icon: Icon(_obscureText ? Icons.visibility : Icons.visibility_off)),
+      ),
+      obscureText: _obscureText,
+      showErrors: (control) => false,
     );
   }
 }

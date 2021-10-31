@@ -51,11 +51,20 @@ class AddCandidateCard extends CandidateCard {
 class CreateCandidateDialogue extends StatelessWidget {
   final _btnController = RoundedLoadingButtonController();
   final form = FormGroup({
-    'name': FormControl<String>(validators: [Validators.required]),
+    'name': FormControl<String>(validators: [Validators.required, _nameValidator]),
     'description': FormControl<String>(validators: [Validators.required]),
     'picture': FormControl<XFile>(validators: [Validators.required]),
   });
   CreateCandidateDialogue({Key? key}) : super(key: key);
+
+  static Map<String, dynamic>? _nameValidator(
+      AbstractControl<dynamic> control) {
+    return control.value != null &&
+            control.value is String &&
+            !control.value!.contains('.')
+        ? null
+        : {'Name must not contain special characters': false};
+  }
 
   Future<void> pickImage() async {
     var picker = ImagePicker();

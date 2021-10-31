@@ -17,6 +17,7 @@ class VoteService extends GetxService {
     if (useEmulator) {
       try {
         firestore.useFirestoreEmulator('localhost', 8080);
+        storage.useStorageEmulator('localhost', 9199);
       } catch (e) {
         //print('Firestore already configured');
       }

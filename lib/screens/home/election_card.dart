@@ -14,7 +14,7 @@ class ElectionCard extends StatelessWidget {
 
   void goToElection() {
     Get.to(() => ElectionPage(election: election),
-        routeName: 'election/${election.id}');
+        routeName: 'election/${election.id}', transition: Transition.native);
   }
 
   void showResults() {
@@ -39,12 +39,17 @@ class ElectionCard extends StatelessWidget {
     return Card(
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ListTile(
             title: Text(election.title),
             isThreeLine: true,
             subtitle: Text(
                 '${election.major}\nStarting Date: ${formatDate(election.startTime)}\nClosing Date: ${formatDate(election.endTime)}'),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 13),
+            child: Text('Total votes: ${election.totalVotes}'),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),

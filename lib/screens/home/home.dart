@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:usg_jub/constants/majors.dart';
 import 'package:usg_jub/models/election.dart';
 import 'package:usg_jub/screens/home/election_card.dart';
@@ -128,12 +130,22 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
 
   @override
   void onReady() {
-    init();
+    try {
+      change([], status: RxStatus.loading());
+      init();
+    } catch (e, s) {
+      if (!kDebugMode) {
+        Sentry.captureException(
+          e,
+          stackTrace: s,
+        );
+      }
+      Get.offNamed(Screens.error);
+    }
     super.onReady();
   }
 
   Future<void> init() async {
-    getElections();
     var locksMap = await vote.getLocks(voterId);
     if (locksMap['locks'] != null) {
       locks = locksMap['locks'];
@@ -141,6 +153,7 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
     if (locksMap['major'] != null) {
       major = locksMap['major'];
     }
+    getElections();
   }
 
   Future<void> getElections() async {

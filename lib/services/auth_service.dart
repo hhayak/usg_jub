@@ -55,7 +55,6 @@ class AuthService {
       var credential = await auth.signInWithEmailAndPassword(
           email: email, password: password);
       await checkIsAdmin();
-      print(credential.user!.metadata.creationTime);
       return credential;
     } on FirebaseAuthException catch (e) {
       throw Exception(e.message);

@@ -50,10 +50,10 @@ class LoginPage extends StatelessWidget {
           // Bad design. This condition migrates to firestore documents instead.
           if (credential.user!.metadata.creationTime!
                   .isBefore(DateTime(2021, 10, 31)) &&
-              credential.user!.displayName != null) {
+              credential.user!.displayName != null && !credential.user!.displayName!.contains('@')) {
             Get.find<AuthService>()
                 .setMajor(credential.user!.uid, credential.user!.displayName!);
-            credential.user!.updateDisplayName(credential.user!.email);
+            //credential.user!.updateDisplayName(credential.user!.email);
           }
           _loginBtnController.success();
           Get.offNamed(Screens.home);

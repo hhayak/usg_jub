@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:usg_jub/auth_middleware.dart';
 import 'package:usg_jub/screens/error_page.dart';
 import 'package:usg_jub/screens/home/home.dart';
+import 'package:usg_jub/screens/home/home_controller.dart';
 import 'package:usg_jub/screens/login.dart';
 
 class Screens {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:usg_jub/models/candidate.dart';
-import 'package:usg_jub/screens/home/home.dart';
 import 'package:usg_jub/screens/home/home_controller.dart';
 import 'package:usg_jub/services/auth_service.dart';
 import 'package:usg_jub/services/vote_service.dart';

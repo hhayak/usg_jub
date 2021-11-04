@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:usg_jub/constants/majors.dart';
 import 'package:usg_jub/models/election.dart';
 import 'package:usg_jub/screens/home/election_card.dart';

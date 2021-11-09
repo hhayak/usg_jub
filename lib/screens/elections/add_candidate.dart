@@ -78,6 +78,7 @@ class CreateCandidateDialogue extends StatelessWidget {
 
   Future<void> handleCreate() async {
     if (form.valid) {
+      String name = form.control('name').value;
       XFile picture = form.control('picture').value;
       var pictureBytes = await picture.readAsBytes();
       var id = const Uuid().v1();
@@ -86,7 +87,7 @@ class CreateCandidateDialogue extends StatelessWidget {
       try {
         var pictureUrl = await Get.find<VoteService>()
             .uploadPicture(pictureBytes, pictureName, electionId);
-        var candidate = Candidate(id, form.control('name').value,
+        var candidate = Candidate(id, name.trim(),
             form.control('description').value, pictureUrl);
         await Get.find<VoteService>().addCandidate(electionId, candidate);
         Get.find<ElectionController>().election.candidates.add(candidate);

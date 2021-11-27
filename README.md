@@ -1,16 +1,12 @@
-# usg_jub
+# USG JUB
 
-A new Flutter project.
+USG JUB is a web app made for the Undergraduate Student Government in Jacobs University Bremen, using Flutter and Firebase. It is a platform that hosts elections organised by the USG. Only eligible students can vote. This is controlled by their academic major.
 
-## Getting Started
+In the long term, I am aiming to add more tools to the web app besides hosting elections (eg. clubs directory, event funding application).
 
-This project is a starting point for a Flutter application.
+# Screenshots (in dark mode)
 
-A few resources to get you started if this is your first Flutter project:
+![image](https://user-images.githubusercontent.com/56046310/142948560-87a1aa63-46c8-4a8f-ac2f-0febbcaa29f6.png)
+![image](https://user-images.githubusercontent.com/56046310/142948685-2c7f05e4-5f6a-470e-b752-19ad0af51ef2.png)
+![image](https://user-images.githubusercontent.com/56046310/142948763-1e3a89b1-d762-4ad2-b66e-440d34660303.png)
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.

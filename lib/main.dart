@@ -10,7 +10,8 @@ Future<void> main() async {
   await registerServices();
   await SentryFlutter.init(
     (options) {
-      options.dsn = 'https://f627da5b6dd84d10b1038f124649161a@o1055361.ingest.sentry.io/6041397';
+      options.dsn =
+          'https://f627da5b6dd84d10b1038f124649161a@o1055361.ingest.sentry.io/6041397';
     },
     appRunner: () => runApp(const MyApp()),
   );

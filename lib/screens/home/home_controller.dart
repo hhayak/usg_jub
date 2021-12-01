@@ -44,7 +44,8 @@ class HomeController extends GetxController with StateMixin<List<Election>> {
   Future<void> init() async {
     var locksMap = await vote.getLocks(voterId);
     locks = List.castFrom<dynamic, String>(locksMap['locks'] ?? []);
-    major = locksMap['major'] ?? Get.find<AuthService>().user!.displayName ?? '';
+    major =
+        locksMap['major'] ?? Get.find<AuthService>().user!.displayName ?? '';
     getElections();
   }
 

@@ -40,8 +40,7 @@ class HomePage extends StatelessWidget {
       ),
       textConfirm: 'Confirm',
       confirm: ElevatedButton(
-        onPressed: () => Get.back<String?>(
-            result: majorControl.value),
+        onPressed: () => Get.back<String?>(result: majorControl.value),
         child: const Text('Confirm'),
       ),
     );
@@ -76,13 +75,14 @@ class HomePage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                        'Your Major: ${Get.find<HomeController>().major}'),
+                    Text('Your Major: ${Get.find<HomeController>().major}'),
                     IconButton(
                       onPressed:
                           HomeController.to.major.isEmpty ? editMajor : null,
                       icon: Icon(
-                        HomeController.to.major.isEmpty ? Icons.edit : Icons.lock_rounded,
+                        HomeController.to.major.isEmpty
+                            ? Icons.edit
+                            : Icons.lock_rounded,
                       ),
                     )
                   ],

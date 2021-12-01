@@ -51,7 +51,8 @@ class AddCandidateCard extends CandidateCard {
 class CreateCandidateDialogue extends StatelessWidget {
   final _btnController = RoundedLoadingButtonController();
   final form = FormGroup({
-    'name': FormControl<String>(validators: [Validators.required, _nameValidator]),
+    'name':
+        FormControl<String>(validators: [Validators.required, _nameValidator]),
     'description': FormControl<String>(validators: [Validators.required]),
     'picture': FormControl<XFile>(validators: [Validators.required]),
   });
@@ -87,8 +88,8 @@ class CreateCandidateDialogue extends StatelessWidget {
       try {
         var pictureUrl = await Get.find<VoteService>()
             .uploadPicture(pictureBytes, pictureName, electionId);
-        var candidate = Candidate(id, name.trim(),
-            form.control('description').value, pictureUrl);
+        var candidate = Candidate(
+            id, name.trim(), form.control('description').value, pictureUrl);
         await Get.find<VoteService>().addCandidate(electionId, candidate);
         Get.find<ElectionController>().election.candidates.add(candidate);
         Get.find<ElectionController>().update();

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
-import 'package:usg_jub/constants/majors.dart';
 import 'package:usg_jub/extensions/soft_loading.dart';
 import 'package:usg_jub/screens/screens.dart';
 import 'package:usg_jub/services/auth_service.dart';

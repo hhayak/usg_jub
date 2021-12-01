@@ -37,23 +37,26 @@ class ElectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListTile(
-            title: Text(election.title),
-            isThreeLine: true,
-            subtitle: Text(
-                '${election.major}\nStarting Date: ${formatDate(election.startTime)}\nClosing Date: ${formatDate(election.endTime)}'),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13),
-            child: Text('Total votes: ${election.totalVotes}'),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 13),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                election.title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(election.major.toString()),
+            ),
+            Text('Starting date: ${formatDate(election.startTime)}'),
+            Text('Closing date: ${formatDate(election.endTime)}'),
+            Text('Total votes: ${election.totalVotes}'),
+            Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 TextButton(
@@ -116,8 +119,8 @@ class ElectionCard extends StatelessWidget {
                 }
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

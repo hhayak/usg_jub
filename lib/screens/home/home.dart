@@ -81,8 +81,8 @@ class HomePage extends StatelessWidget {
                     IconButton(
                       onPressed:
                           HomeController.to.major.isEmpty ? editMajor : null,
-                      icon: const Icon(
-                        Icons.edit,
+                      icon: Icon(
+                        HomeController.to.major.isEmpty ? Icons.edit : Icons.lock_rounded,
                       ),
                     )
                   ],

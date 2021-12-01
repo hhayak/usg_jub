@@ -8,6 +8,13 @@ import 'package:usg_jub/screens/home/home_controller.dart';
 import 'package:usg_jub/services/vote_service.dart';
 
 class CreateElectionDialogue extends StatelessWidget {
+  final List<String> majorsChoices = [
+    ...majors,
+    'FAD',
+    'FAM',
+    'FAH',
+    'Everyone'
+  ];
   final _btnController = RoundedLoadingButtonController();
   final DateTime firstDate = DateTime.now();
   final form = FormGroup({
@@ -30,13 +37,16 @@ class CreateElectionDialogue extends StatelessWidget {
       List<String> major;
       switch (form.control('major').value) {
         case 'FAD':
-          major = ['GEM', 'IBA', 'SMP', 'IRPH', 'PSY'];
+          major = fadMajors;
           break;
         case 'FAM':
-          major = ['IEM', 'MATH', 'CS', 'ECE', 'IMS'];
+          major = famMajors;
           break;
         case 'FAH':
-          major = ['BCCB', 'CHEM', 'MCCB', 'EES', 'PHY'];
+          major = fahMajors;
+          break;
+        case 'Everyone':
+          major = majors;
           break;
         default:
           major = [form.control('major').value];
@@ -82,7 +92,7 @@ class CreateElectionDialogue extends StatelessWidget {
           ReactiveDropdownField<String>(
             formControlName: 'major',
             decoration: const InputDecoration(labelText: 'Major'),
-            items: majors
+            items: majorsChoices
                 .map((e) => DropdownMenuItem<String>(
                       child: Text(e),
                       value: e,

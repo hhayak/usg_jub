@@ -14,7 +14,8 @@ const List<String> majors = [
   'PHY',
   'PSY',
   'SMP',
-  'FAD',
-  'FAM',
-  'FAH',
 ];
+
+const List<String> fadMajors = ['GEM', 'IBA', 'SMP', 'IRPH', 'PSY'];
+const List<String> famMajors = ['IEM', 'MATH', 'CS', 'ECE', 'IMS'];
+const List<String> fahMajors = ['BCCB', 'CHEM', 'MCCB', 'EES', 'PHY'];

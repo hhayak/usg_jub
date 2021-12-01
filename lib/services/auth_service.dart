@@ -2,12 +2,15 @@ import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:get/get.dart';
 
 class AuthService {
   final FirebaseAuth auth;
   final FirebaseFirestore firestore;
   bool? isAdmin;
   Completer firstCheck = Completer();
+
+  static AuthService get to => Get.find();
 
   AuthService(this.auth, this.firestore,
       [bool useEmulator = false, bool skipAuth = false]) {

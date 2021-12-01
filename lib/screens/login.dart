@@ -39,21 +39,17 @@ class LoginPage extends StatelessWidget {
         credential = await Get.find<AuthService>()
             .login(email, form.control('password').value!);
         if (!credential.user!.emailVerified) {
-          var major = await getMajor();
-          if (major.isEmpty) {
-            throw Exception('Major is required.');
-          }
-          Get.find<AuthService>().setMajor(credential.user!.uid, major);
           throw Exception('Email is not verified.');
         } else {
           // Users created before 29.10.2021, used display name to set their major.
           // Bad design. This condition migrates to firestore documents instead.
           if (credential.user!.metadata.creationTime!
                   .isBefore(DateTime(2021, 10, 31)) &&
-              credential.user!.displayName != null && !credential.user!.displayName!.contains('@')) {
+              credential.user!.displayName != null &&
+              !credential.user!.displayName!.contains('@')) {
             Get.find<AuthService>()
                 .setMajor(credential.user!.uid, credential.user!.displayName!);
-            //credential.user!.updateDisplayName(credential.user!.email);
+            credential.user!.updateDisplayName(credential.user!.email);
           }
           _loginBtnController.success();
           Get.offNamed(Screens.home);
@@ -90,19 +86,13 @@ class LoginPage extends StatelessWidget {
         var email = form.control('username').value! + emailDomain;
         var credential = await Get.find<AuthService>()
             .register(email, form.control('password').value!);
-        if (credential.user != null &&
-            credential.additionalUserInfo!.isNewUser) {
-          var major = await getMajor();
-          if (major.isEmpty) {
-            throw Exception('Major is required.');
-          }
-          Get.find<AuthService>().setMajor(credential.user!.uid, major);
+        if (credential.user != null) {
           credential.user!.sendEmailVerification();
+          _registerBtnController.success();
+          Get.snackbar('Registration Succesful!',
+              'Please verify your email to be able to login and vote. Make sure to check your junk/spam folder.',
+              duration: const Duration(seconds: 10));
         }
-        _registerBtnController.success();
-        Get.snackbar('Registration Succesful!',
-            'Please verify your email to be able to login and vote. Make sure to check your junk/spam folder.',
-            duration: const Duration(seconds: 10));
       } else {
         throw Exception('Input is not valid.');
       }
@@ -127,35 +117,6 @@ class LoginPage extends StatelessWidget {
     } catch (e) {
       Get.snackbar('Failed to reset password.', e.toString());
     }
-  }
-
-  Future<String> getMajor() async {
-    final majorControl = FormControl<String>(validators: [Validators.required]);
-    var selectedMajor = await Get.defaultDialog<String>(
-      barrierDismissible: false,
-      title: 'Select your Major',
-      content: Padding(
-        padding: const EdgeInsets.all(8),
-        child: ReactiveDropdownField<String>(
-          formControl: majorControl,
-          decoration: const InputDecoration(labelText: 'Major'),
-          items: majors
-              .map((e) => DropdownMenuItem<String>(
-                    child: Text(e),
-                    value: e,
-                  ))
-              .toList(),
-        ),
-      ),
-      textConfirm: 'Confirm',
-      confirm: ElevatedButton(
-        onPressed: () => Get.back<String>(
-            result: majorControl.value ?? '', canPop: majorControl.valid),
-        child: const Text('Confirm'),
-      ),
-    );
-
-    return selectedMajor!;
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -17,8 +18,10 @@ Future<void> registerServices() async {
       VoteService(
           FirebaseFirestore.instance, FirebaseStorage.instance, useEmulators),
       permanent: true);
-  await Get.find<AuthService>().firstCheck.future;
-  if (Get.find<AuthService>().user != null) {
-    await Get.find<AuthService>().checkIsAdmin();
+  FirebaseAnalytics.instance.logAppOpen();
+  await AuthService.to.firstCheck.future;
+  if (AuthService.to.user != null) {
+    FirebaseAnalytics.instance.setUserId(id: AuthService.to.user!.uid);
+    await AuthService.to.checkIsAdmin();
   }
 }

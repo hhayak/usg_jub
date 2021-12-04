@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:get/get.dart';
 import 'package:usg_jub/models/candidate.dart';
 import 'package:usg_jub/models/election.dart';
@@ -57,8 +58,12 @@ class VoteService extends GetxService {
       'votes.$candidateName': FieldValue.increment(1),
       'totalVotes': FieldValue.increment(1),
     });
-    locks.doc(voterId).update({
+    await locks.doc(voterId).update({
       'locks': FieldValue.arrayUnion([electionId])
+    });
+    FirebaseAnalytics.instance.logEvent(name: 'vote', parameters: {
+      'electionId': electionId,
+      'candidateName': candidateName,
     });
   }
 

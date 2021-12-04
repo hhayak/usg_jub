@@ -67,7 +67,7 @@ class CandidateCard extends StatelessWidget {
             height: Get.height / 2,
             child: SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: Get.width > 500 ? const EdgeInsets.symmetric(horizontal: 5) : EdgeInsets.zero,
                 child: Text(candidate.description),
               ),
             ),

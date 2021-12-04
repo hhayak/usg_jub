@@ -70,10 +70,10 @@ class CreateCandidateDialogue extends StatelessWidget {
   Future<void> pickImage() async {
     var picker = ImagePicker();
     var image = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxHeight: 100,
-        maxWidth: 100,
-        imageQuality: 10);
+      source: ImageSource.gallery,
+      maxHeight: 100,
+      maxWidth: 100,
+    );
     form.control('picture').updateValue(image);
   }
 

@@ -78,7 +78,7 @@ class VoteService extends GetxService {
   }
 
   Future<List<Election>> getElections() async {
-    var query = await collection.get();
+    var query = await collection.orderBy('isOpen', descending: true).get();
     var elections = query.docs.map((e) => e.data()).toList();
     return elections;
   }
